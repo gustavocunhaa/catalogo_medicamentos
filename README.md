@@ -9,3 +9,8 @@ O objetivo é ter uma base que retorne informações funcionais, mas também que
 
 - Informações estruturadas sobre medicamentos
 - Base de vetores para busca por similaridade de texto
+
+
+## Vetores
+
+A base de vetores foi construída utilizando os embedings do modelo [BERTimbau](https://huggingface.co/neuralmind/bert-base-portuguese-cased) e utilizando o [pgvector](https://github.com/pgvector/pgvector) para armazenrar e manipular os vetores.

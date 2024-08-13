@@ -9,7 +9,9 @@ O objetivo é ter uma base que retorne informações funcionais, mas também que
 
 - Informações estruturadas sobre medicamentos
 - Base de vetores para busca por similaridade de texto
+- API para manipulação da base de produtos e utilização do sistema de recomendação
 
+> Todas as credenciais necessárias para manipulação do banco estão em [example.env](example.env)
 
 ## Vetores
 

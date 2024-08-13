@@ -34,53 +34,61 @@ class VectorDatabase():
             FROM fat_produto f
             INNER JOIN dim_classificacao_produto clf
                 on f.medicamento_id = clf.medicamento_id
+            LEFT JOIN dim_vetores vt
+                on f.medicamento_id = vt.medicamento_id
             WHERE
                 1=1
                 and f.deleted_at is null
+                and vt.vetor is null
         """
         df = pd.read_sql(query_infos, con)
+        print(f"Read data... {df.shape}")
         return df
     
     def inference(self, texts):
         api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{self.model_id}"
         headers = {"Authorization": f"Bearer {self.hf_token}"}
+        print("Making inference...")
         response = requests.post(api_url, headers=headers, json={"inputs": texts, "options":{"wait_for_model":True}})
         return response.json()
 
-    def make_vectors(self):
-        con = self.make_engine()
-        df = self.read_data(con)
-        output = self.inference(df['descricao'].tolist())
-        vector_list = []
-        for i in range(0, len(output)):
-            vector_list.append(output[i][0][0]) # collect CLS token
-        df['vetor'] = vector_list
-        return df
-
-    def save_vectors(self, df):
+    def make_vectors(self, list_text):
+        output = self.inference(list_text)
+        print(output)
+        return output[0][0][0] # collect only CLS token
+    
+    def exec_query(self, query):
         conn = pgsql.connect(database = self.database, 
-                     user = self.user, 
-                     host = self.host,
-                     password = self.password,
-                     port = self.port)
+                user = self.user, 
+                host = self.host,
+                password = self.password,
+                port = self.port)
+        cur = conn.cursor()
+        cur.execute(query)
+        conn.commit()
+        cur.close()
+        conn.close()        
 
-        for n in range(0, len(df)):
-            sql_insert = f""" 
-            INSERT INTO dim_vetores(medicamento_id, vetor) VALUES({df['medicamento_id'][n]}, '{df['vetor'][n]}');
-            """
-            cur = conn.cursor()
-            cur.execute(sql_insert)
-            conn.commit()
-            cur.close()
-            conn.close()
+    def save_vectors(self, medicamento_id, vetor):
+        sql_insert = f""" 
+        INSERT INTO dim_vetores(medicamento_id, vetor) VALUES({medicamento_id}, '{vetor}');
+        """
+        self.exec_query(sql_insert)
+        print(f"Save value for medicamento_id {medicamento_id}")
 
     def run(self):
-        vectors_df = self.make_vectors()
-        self.save_vectors(vectors_df)
+        con = self.make_engine()
+        df = self.read_data(con)
+        for n in range(0, len(df)):
+            medicamento_id = df['medicamento_id'][n]
+            text_list = [df['descricao'][n]]
+            print(f"Process for medicamento_id {medicamento_id}")
+            output = self.make_vectors(text_list)
+            self.save_vectors(medicamento_id, output)
         
 
-load_dotenv()
 
+load_dotenv()
 VectorDatabase(
     user=os.environ['user'],
     password=os.environ['password'],

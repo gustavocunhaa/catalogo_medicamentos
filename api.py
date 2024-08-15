@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from transformers import AutoModel, AutoTokenizer
 import torch
 
-from src.api.schemas import ColetaInfo, MontaVetor
+from src.api.schemas import BuscaProdutos, MontaVetor, DistanciaVetores, ColetaInfo, RegraIntercambiavel
 from src.api.handler import DatabaseHandler
 from src.api         import querys
 
@@ -34,7 +34,7 @@ async def get_lista_produtos():
     return response
 
 
-@app.post("/infocollect/", description="Coleta as informações listadas de um produto")
+@app.post("/product/info/", description="Coleta as informações listadas de um produto")
 async def coleta_informacoes(data: ColetaInfo):
     body = json.loads(data.model_dump_json())
     query = querys.collect_info(
@@ -44,8 +44,19 @@ async def coleta_informacoes(data: ColetaInfo):
     response = df.to_json(orient='records')
     return response
 
+@app.post("/product/find/", description="Busca um produto de acordo com o texto")
+async def busca_produtos(data: BuscaProdutos):
+    body = json.loads(data.model_dump_json())
+    query = querys.find_product(body['busca'])
+    df = database_handler.exec_sql(query)
+    response = {
+        "medicamento_id": str(df['medicamento_id'][0]),
+        "descricao":      str(df['descricao'][0])
+    }
+    return response
+
 @app.post("/makevector/", description="Endpoint para facilitar a criação de um novo vetor")
-async def realiza_vetorizacao(data: MontaVetor):
+async def monta_vetorizacao(data: MontaVetor):
     body = json.loads(data.model_dump_json())
     text = str(body['texto'])
 
@@ -59,5 +70,31 @@ async def realiza_vetorizacao(data: MontaVetor):
         outs = model(input_ids)
         encoded = outs[0][0, 1:-1]  # Ignore [CLS] and [SEP] special tokens
     vetor = encoded.mean(dim=0).detach().numpy()
-    response = json.loads(json.dumps({"vetor": str(list(vetor))}))
+    response = str(list(vetor))
+    return response
+
+@app.post("/recommendation/find/", description="Faz a busca dos produtos mais semelhantes com base no texto")
+async def recomendacao_vetorial(data: DistanciaVetores):
+    body = json.loads(data.model_dump_json())
+    query = querys.distance_vector(body['vetor'])
+    df = database_handler.exec_sql(query)
+    response = df['medicamento_id'].tolist()
+    return response
+
+
+@app.post("/recommendation/rule/", description="Faz a busca de protudos intercambiáveis")
+async def coleta_informacoes(data: RegraIntercambiavel):
+    body = json.loads(data.model_dump_json())
+    query_infos = querys.collect_info(
+        id_list=[body['medicamento_id']], 
+        columns=['tipo']
+        )
+    infos = database_handler.exec_sql(query_infos)
+    
+    query = querys.rule_find(
+        medicamento_id=int(infos['medicamento_id'][0]),
+        type=str(infos['tipo'][0])
+        )
+    df = database_handler.exec_sql(query)
+    response = df['medicamento_id'].tolist()
     return response

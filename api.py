@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from transformers import AutoModel, AutoTokenizer
 import torch
 
-from src.api.schemas import ColetaInfo, MontaVetor
+from src.api.schemas import ColetaInfo, MontaVetor, DistanciaVetores
 from src.api.handler import DatabaseHandler
 from src.api         import querys
 
@@ -59,5 +59,13 @@ async def realiza_vetorizacao(data: MontaVetor):
         outs = model(input_ids)
         encoded = outs[0][0, 1:-1]  # Ignore [CLS] and [SEP] special tokens
     vetor = encoded.mean(dim=0).detach().numpy()
-    response = json.loads(json.dumps({"vetor": str(list(vetor))}))
+    response = str(list(vetor))
+    return response
+
+@app.post("/recommendation/find/", description="Faz a busca dos 3 produtos mais semelhantes com base no texto")
+async def recomendacao_vetorial(data: DistanciaVetores):
+    body = json.loads(data.model_dump_json())
+    query = querys.distance_vector(body['vetor'])
+    df = database_handler.exec_sql(query)
+    response = df['medicamento_id'].tolist()
     return response

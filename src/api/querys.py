@@ -40,3 +40,13 @@ def collect_info(id_list: list, columns: list):
             and f.deleted_at is null
     '''
     return query
+
+def distance_vector(vetor: str):
+    query = f"""
+        SELECT 
+            medicamento_id 
+        FROM dim_vetores
+        ORDER BY vetor <=> '{vetor}'
+        LIMIT 3;
+    """
+    return query

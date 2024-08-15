@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from transformers import AutoModel, AutoTokenizer
 import torch
 
-from src.api.schemas import ColetaInfo, MontaVetor, DistanciaVetores
+from src.api.schemas import BuscaProdutos, MontaVetor, DistanciaVetores, ColetaInfo
 from src.api.handler import DatabaseHandler
 from src.api         import querys
 
@@ -34,7 +34,7 @@ async def get_lista_produtos():
     return response
 
 
-@app.post("/infocollect/", description="Coleta as informações listadas de um produto")
+@app.post("/product/info/", description="Coleta as informações listadas de um produto")
 async def coleta_informacoes(data: ColetaInfo):
     body = json.loads(data.model_dump_json())
     query = querys.collect_info(
@@ -44,8 +44,16 @@ async def coleta_informacoes(data: ColetaInfo):
     response = df.to_json(orient='records')
     return response
 
+@app.post("/product/find/", description="Busca um produto de acordo com o texto")
+async def busca_produtos(data: BuscaProdutos):
+    body = json.loads(data.model_dump_json())
+    query = querys.find_product(body['busca'])
+    df = database_handler.exec_sql(query)
+    response = df.to_json(orient='records')
+    return response
+
 @app.post("/makevector/", description="Endpoint para facilitar a criação de um novo vetor")
-async def realiza_vetorizacao(data: MontaVetor):
+async def monta_vetorizacao(data: MontaVetor):
     body = json.loads(data.model_dump_json())
     text = str(body['texto'])
 

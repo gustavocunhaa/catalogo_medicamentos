@@ -41,6 +41,19 @@ def collect_info(id_list: list, columns: list):
     '''
     return query
 
+def find_product(text_find: str):
+    query = f""" 
+    SELECT
+        medicamento_id,
+        CONCAT(produto, ' ', principio_ativo, ' ', tipo, ' ', categoria, ' ', classe_terapeutica, ' ', especialidade, ' ', fabricante)  as descricao 
+    FROM dim_classificacao_produto
+    WHERE 
+        CONCAT(produto, ' ', principio_ativo, ' ', tipo, ' ', categoria, ' ', classe_terapeutica, ' ', especialidade, ' ', fabricante) 
+        ILIKE '%%{text_find}%%'
+    LIMIT 1;
+    """
+    return query
+
 def distance_vector(vetor: str):
     query = f"""
         SELECT 

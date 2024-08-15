@@ -56,3 +56,16 @@ class DistanciaVetores(BaseModel):
             ]
         }
     }
+
+class RegraIntercambiavel(BaseModel):
+    medicamento_id: int
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "medicamento_id": 1401
+                }
+            ]
+        }
+    }

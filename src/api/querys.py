@@ -63,3 +63,41 @@ def distance_vector(vetor: str):
         LIMIT 3;
     """
     return query
+
+def rule_find(medicamento_id: int, type: str):
+    if type in ("Genérico", "Referência", "Similar Intercambiável"):
+        query = f""" 
+            SELECT
+                f.medicamento_id
+            FROM fat_produto f
+            INNER JOIN dim_classificacao_produto clf on f.medicamento_id = clf.medicamento_id
+            INNER JOIN dim_preco pr on f.medicamento_id = pr.medicamento_id
+            WHERE
+                1=1
+                and f.deleted_at is NULL
+                and clf.tipo = 'Genérico'
+                and clf.principio_ativo = (SELECT principio_ativo FROM dim_classificacao_produto WHERE medicamento_id = {medicamento_id})
+                and f.medicamento_id <> {medicamento_id}
+            GROUP BY f.medicamento_id
+            ORDER BY AVG(pr.pmc_valor)
+            LIMIT 3;
+        """
+    else:
+        query = f""" 
+            SELECT
+                f.medicamento_id
+            FROM fat_produto f
+            INNER JOIN dim_classificacao_produto clf on f.medicamento_id = clf.medicamento_id
+            INNER JOIN dim_preco pr on f.medicamento_id = pr.medicamento_id
+            WHERE
+                1=1
+                and f.deleted_at is NULL
+                and clf.tipo = '{type}'
+                and clf.principio_ativo = (SELECT principio_ativo FROM dim_classificacao_produto WHERE medicamento_id = {medicamento_id})
+                and f.medicamento_id <> {medicamento_id}
+            GROUP BY f.medicamento_id
+            ORDER BY AVG(pr.pmc_valor)
+            LIMIT 3;
+        """
+    return query
+        

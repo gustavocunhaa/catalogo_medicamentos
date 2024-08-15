@@ -99,7 +99,6 @@ if busca:
     lista_ids = distance_vector(vetor_busca)
     info_produto_selecionado = json.loads(find_info(lista_ids))
     st.write("Resultados da sua busca:")
-    st.write(lista_ids)
     st.json(info_produto_selecionado)
 
   

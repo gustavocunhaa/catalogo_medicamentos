@@ -54,13 +54,17 @@ def find_product(text_find: str):
     """
     return query
 
+
+# Recommendation section
+LIMIT = 2
+
 def distance_vector(vetor: str):
     query = f"""
         SELECT 
             medicamento_id 
         FROM dim_vetores
         ORDER BY vetor <=> '{vetor}'
-        LIMIT 3;
+        LIMIT {LIMIT};
     """
     return query
 
@@ -80,7 +84,7 @@ def rule_find(medicamento_id: int, type: str):
                 and f.medicamento_id <> {medicamento_id}
             GROUP BY f.medicamento_id
             ORDER BY AVG(pr.pmc_valor)
-            LIMIT 3;
+            LIMIT {LIMIT};
         """
     else:
         query = f""" 
@@ -97,7 +101,7 @@ def rule_find(medicamento_id: int, type: str):
                 and f.medicamento_id <> {medicamento_id}
             GROUP BY f.medicamento_id
             ORDER BY AVG(pr.pmc_valor)
-            LIMIT 3;
+            LIMIT {LIMIT};
         """
     return query
         

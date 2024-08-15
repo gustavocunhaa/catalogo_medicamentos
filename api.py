@@ -73,7 +73,7 @@ async def monta_vetorizacao(data: MontaVetor):
     response = str(list(vetor))
     return response
 
-@app.post("/recommendation/find/", description="Faz a busca dos 3 produtos mais semelhantes com base no texto")
+@app.post("/recommendation/find/", description="Faz a busca dos produtos mais semelhantes com base no texto")
 async def recomendacao_vetorial(data: DistanciaVetores):
     body = json.loads(data.model_dump_json())
     query = querys.distance_vector(body['vetor'])
@@ -82,7 +82,7 @@ async def recomendacao_vetorial(data: DistanciaVetores):
     return response
 
 
-@app.post("/recommendation/rule/", description="Faz a busca de 3 protudos intercambiáveis")
+@app.post("/recommendation/rule/", description="Faz a busca de protudos intercambiáveis")
 async def coleta_informacoes(data: RegraIntercambiavel):
     body = json.loads(data.model_dump_json())
     query_infos = querys.collect_info(

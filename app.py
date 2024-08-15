@@ -1,4 +1,5 @@
 import json
+import ast
 import requests as r
 import streamlit as st
 
@@ -32,24 +33,66 @@ def make_request(url, input):
     response = r.post(url=url, headers=headers, data=input)
     return response
 
+@st.cache_data
+def find_product(busca: str):
+    data = json.dumps({"busca": busca})
+    url = f"{BASE_URL}/product/find/"
+    response = make_request(url, data).text
+    return response
+    
 
 @st.cache_data
-def find_info(id: int):
+def create_vector(text: str):
+    data = json.dumps({"texto": text})
+    url = f"{BASE_URL}/makevector/"
+    response = make_request(url, data).text
+    return response
+
+
+@st.cache_data
+def distance_vector(vector_info: str):
+    url = f"{BASE_URL}/recommendation/find/"
+    data = json.dumps({"vetor": vector_info})
+    response = make_request(url, data).text
+    return response
+
+
+@st.cache_data
+def find_info(id: list):
     lista_atributos = ["produto", "principio_ativo", "tipo",
                        "fabricante", "especialidade", 
-                       "classe_terapeutica", "categoria"]
-    data = json.dumps({"lista_ids": [int(id)],
+                       "classe_terapeutica", "categoria",
+                       "codigo_barras", "tipo_receita"]
+    data = json.dumps({"lista_ids": ast.literal_eval(id),
                        "atributos": lista_atributos
                        })
-    url = f"{BASE_URL}/infocollect/"
-    response = make_request(url, data)
+    url = f"{BASE_URL}/product/info/"
+    response = make_request(url, data).text
     return response
+
 
 # -------------------------
 # Pages render
 
 st.markdown("### Busque o produto")
 
-id_medicamento = st.number_input(label="Id do medicamento", step=1, min_value=1)
-info_produto_selecionado = json.loads(find_info(id_medicamento).text)
-st.json(info_produto_selecionado)
+busca = st.text_input(label="O que você precisa?")
+if busca:
+  produto = json.loads(find_product(busca))
+
+  vectorRecommendation, ruleRecommendation, clusterRecommendation = st.columns([2,2,2])
+  
+  with vectorRecommendation:
+    vetor_busca = json.loads(create_vector(produto['descricao']))
+    lista_ids = distance_vector(vetor_busca)
+    info_produto_selecionado = json.loads(find_info(lista_ids))
+    st.write("Resultados da sua busca:")
+    st.json(info_produto_selecionado)
+
+  
+  with ruleRecommendation:
+    st.write("Você também pode optar por:")
+
+  
+  with clusterRecommendation:
+    st.write("Produtos que você pode gostar:")

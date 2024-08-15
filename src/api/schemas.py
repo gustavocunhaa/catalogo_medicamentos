@@ -57,7 +57,7 @@ class DistanciaVetores(BaseModel):
         }
     }
 
-class RegraIntercambiavel(BaseModel):
+class RecomendacaoPorId(BaseModel):
     medicamento_id: int
 
     model_config = {

@@ -105,3 +105,13 @@ def rule_find(medicamento_id: int, type: str):
         """
     return query
         
+def cluster_find(medicamento_id: int):
+    query = f""" 
+        SELECT
+            medicamento_id
+        FROM dim_cluster
+        WHERE cluster = (SELECT cluster FROM dim_cluster WHERE medicamento_id = {medicamento_id})
+        ORDER BY RANDOM()
+        LIMIT {LIMIT};
+    """
+    return query

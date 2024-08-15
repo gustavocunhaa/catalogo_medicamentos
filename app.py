@@ -13,6 +13,7 @@ st.markdown(f"# {page_title}")
 
 autor_html = """
 <div style="display: inline_block"><br>
+  Autor: Gustavo de Paula Cunha |
   <a href="https://github.com/gustavocunhaa">
     <img align="center" alt="github" height="30" width="30" src="https://static.macupdate.com/products/39062/l/github-desktop-logo.png">
   <a href="https://www.linkedin.com/in/gustavo-cunha-312a80157/">
@@ -64,6 +65,13 @@ def rule_find(id: int):
     response = make_request(url, data).text
     return response
 
+@st.cache_data
+def cluster_find(id: int):
+    url = f"{BASE_URL}/recommendation/cluster/"
+    data = json.dumps({"medicamento_id": id})
+    response = make_request(url, data).text
+    return response
+
 
 @st.cache_data
 def find_info(id: list):
@@ -91,24 +99,27 @@ st.markdown("### Busque o produto")
 busca = st.text_input(label="O que você precisa?")
 if busca:
   produto = json.loads(find_product(busca))
+  id_busca = int(produto['medicamento_id'])
 
   vectorRecommendation, ruleRecommendation, clusterRecommendation = st.columns([2,2,2])
   
   with vectorRecommendation:
     vetor_busca = json.loads(create_vector(produto['descricao']))
     lista_ids = distance_vector(vetor_busca)
-    info_produto_selecionado = json.loads(find_info(lista_ids))
+    info_produto_vetor = json.loads(find_info(lista_ids))
     st.write("Resultados da sua busca:")
-    st.json(info_produto_selecionado)
+    st.json(info_produto_vetor)
 
   
   with ruleRecommendation:
-    id_busca = int(produto['medicamento_id'])
-    ids = json.loads(rule_find(id_busca))
-    info_produto_selecionado = json.loads(find_info(ids))
+    ids_regra = json.loads(rule_find(id_busca))
+    info_produto_regra = json.loads(find_info(ids_regra))
     st.write("Você também pode optar por:")
-    st.json(info_produto_selecionado)
+    st.json(info_produto_regra)
   
 
   with clusterRecommendation:
+    ids_cluster = json.loads(cluster_find(id_busca))
+    info_produto_cluster = json.loads(find_info(ids_cluster))
     st.write("Produtos que você pode gostar:")
+    st.json(info_produto_cluster)

@@ -16,3 +16,10 @@ O objetivo é ter uma base que retorne informações funcionais, mas também que
 ## Vetores
 
 A base de vetores foi construída utilizando os embedings do modelo [BERTimbau](https://huggingface.co/neuralmind/bert-base-portuguese-cased) e utilizando o [pgvector](https://github.com/pgvector/pgvector) para armazenrar e manipular os vetores.
+
+
+## Sistema de recomendação
+
+O sistema tem 3 tipos diferentes de recomendações, onde são recomendados produtos com base no input inicial textual.
+
+![recomendacao](docs/[GitHub]%20Arch%20-%20catalogo%20de%20medicamentos_%20recomendacao.jpg)

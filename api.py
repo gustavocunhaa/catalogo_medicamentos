@@ -3,7 +3,10 @@ from dotenv import load_dotenv
 
 import json
 from fastapi import FastAPI
-from src.api.schemas import ColetaInfo
+from transformers import AutoModel, AutoTokenizer
+import torch
+
+from src.api.schemas import ColetaInfo, MontaVetor
 from src.api.handler import DatabaseHandler
 from src.api         import querys
 
@@ -41,4 +44,20 @@ async def coleta_informacoes(data: ColetaInfo):
     response = df.to_json(orient='records')
     return response
 
+@app.post("/makevector/", description="Endpoint para facilitar a criação de um novo vetor")
+async def realiza_vetorizacao(data: MontaVetor):
+    body = json.loads(data.model_dump_json())
+    text = str(body['texto'])
 
+    model_id = 'neuralmind/bert-base-portuguese-cased'
+    model = AutoModel.from_pretrained(model_id)
+    
+    tokenizer = AutoTokenizer.from_pretrained(model_id, do_lower_case=False, clean_up_tokenization_spaces=True)
+    input_ids = tokenizer.encode(f'{text}', return_tensors='pt')
+    
+    with torch.no_grad():
+        outs = model(input_ids)
+        encoded = outs[0][0, 1:-1]  # Ignore [CLS] and [SEP] special tokens
+    vetor = encoded.mean(dim=0).detach().numpy()
+    response = json.loads(json.dumps({"vetor": str(list(vetor))}))
+    return response

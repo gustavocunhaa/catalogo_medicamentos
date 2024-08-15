@@ -18,3 +18,17 @@ class ColetaInfo(BaseModel):
             ]
         }
     }
+
+
+class MontaVetor(BaseModel):
+    texto: str
+    
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "texto": "Losartana genérica"
+                }
+            ]
+        }
+    }

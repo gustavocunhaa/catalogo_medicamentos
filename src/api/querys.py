@@ -10,7 +10,7 @@ def list_ids():
 def collect_info(id_list: list, columns: list):
     ensure_list = ['produto', 
                    'principio_ativo', 
-                   'tipo_produto',
+                   'tipo',
                    'fabricante',
                    'especialidade',
                    'classe_terapeutica',

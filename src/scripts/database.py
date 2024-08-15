@@ -7,13 +7,14 @@ from sqlalchemy import create_engine
 
 class InsertData():
 
-    def __init__(self, user, password, host, port, database, s3_file):
+    def __init__(self, user, password, host, port, database, partition, s3_file):
 
         self.user = user
         self.password = password
         self.host = host
         self.port = port
         self.database = database
+        self.partition = partition
         self.s3_file = s3_file
 
     def make_engine(self):
@@ -22,7 +23,7 @@ class InsertData():
         return con
     
     def read_s3(self):
-        file = f"s3://catalogo-medicamentos/silver/{self.s3_file}.parquet"
+        file = f"s3://catalogo-medicamentos/{self.partition}/{self.s3_file}.parquet"
         df = wr.s3.read_parquet(file)
         return df
     
@@ -33,6 +34,7 @@ class InsertData():
 
 
 parser = argparse.ArgumentParser(description="Insert Data")
+parser.add_argument("--partition", required=True)
 parser.add_argument("--file_name", required=True)
 args = parser.parse_args()
 
@@ -44,5 +46,6 @@ InsertData(
     host=os.environ['host'],
     port=os.environ['port'],
     database=os.environ['database'],
+    partition=args.partition,
     s3_file=args.file_name
 ).create_table()

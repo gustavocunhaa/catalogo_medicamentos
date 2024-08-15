@@ -58,12 +58,24 @@ def distance_vector(vector_info: str):
 
 
 @st.cache_data
+def rule_find(id: int):
+    url = f"{BASE_URL}/recommendation/rule/"
+    data = json.dumps({"medicamento_id": id})
+    response = make_request(url, data).text
+    return response
+
+
+@st.cache_data
 def find_info(id: list):
+    if type(id) == list:
+       lista = id
+    else:
+       lista = ast.literal_eval(id)
     lista_atributos = ["produto", "principio_ativo", "tipo",
                        "fabricante", "especialidade", 
                        "classe_terapeutica", "categoria",
                        "codigo_barras", "tipo_receita"]
-    data = json.dumps({"lista_ids": ast.literal_eval(id),
+    data = json.dumps({"lista_ids": lista,
                        "atributos": lista_atributos
                        })
     url = f"{BASE_URL}/product/info/"
@@ -87,12 +99,17 @@ if busca:
     lista_ids = distance_vector(vetor_busca)
     info_produto_selecionado = json.loads(find_info(lista_ids))
     st.write("Resultados da sua busca:")
+    st.write(lista_ids)
     st.json(info_produto_selecionado)
 
   
   with ruleRecommendation:
+    id_busca = int(produto['medicamento_id'])
+    ids = json.loads(rule_find(id_busca))
+    info_produto_selecionado = json.loads(find_info(ids))
     st.write("Você também pode optar por:")
-
+    st.json(info_produto_selecionado)
   
+
   with clusterRecommendation:
     st.write("Produtos que você pode gostar:")

@@ -49,7 +49,10 @@ async def busca_produtos(data: BuscaProdutos):
     body = json.loads(data.model_dump_json())
     query = querys.find_product(body['busca'])
     df = database_handler.exec_sql(query)
-    response = df.to_json(orient='records')
+    response = {
+        "medicamento_id": str(df['medicamento_id'][0]),
+        "descricao":      str(df['descricao'][0])
+    }
     return response
 
 @app.post("/makevector/", description="Endpoint para facilitar a criação de um novo vetor")

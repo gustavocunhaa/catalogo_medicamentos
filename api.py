@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from transformers import AutoModel, AutoTokenizer
 import torch
 
-from src.api.schemas import BuscaProdutos, MontaVetor, DistanciaVetores, ColetaInfo, RegraIntercambiavel
+from src.api.schemas import BuscaProdutos, MontaVetor, DistanciaVetores, ColetaInfo, RecomendacaoPorId
 from src.api.handler import DatabaseHandler
 from src.api         import querys
 
@@ -83,7 +83,7 @@ async def recomendacao_vetorial(data: DistanciaVetores):
 
 
 @app.post("/recommendation/rule/", description="Faz a busca de protudos intercambiáveis")
-async def coleta_informacoes(data: RegraIntercambiavel):
+async def recomenda_intercambiavel(data: RecomendacaoPorId):
     body = json.loads(data.model_dump_json())
     query_infos = querys.collect_info(
         id_list=[body['medicamento_id']], 
@@ -97,4 +97,12 @@ async def coleta_informacoes(data: RegraIntercambiavel):
         )
     df = database_handler.exec_sql(query)
     response = df['medicamento_id'].tolist()
+    return response
+
+@app.post("/recommendation/cluster/", description="Faz a busca de produtos com base no mesmo agrupamento de cluster")
+async def recomenda_cluster(data: RecomendacaoPorId):
+    body = json.loads(data.model_dump_json())
+    query = querys.cluster_find(int(body['medicamento_id']))
+    df = database_handler.exec_sql(query)
+    response = df['medicamento_id'].to_list()
     return response
